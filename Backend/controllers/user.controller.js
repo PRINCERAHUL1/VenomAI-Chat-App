@@ -16,6 +16,8 @@ export const CreateUserController = async (req, res) => {
 
         const token = user.generateToken();
 
+        delete user._doc.password;
+
         res.status(201).json({ user, token });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -43,7 +45,9 @@ export const loginController = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = user.generateToken();
+        const token = await user.generateToken();
+
+        delete user._doc.password;
 
         res.status(200).json({ user, token });
     } catch (err) {

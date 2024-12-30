@@ -1,19 +1,50 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, {useState} from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from '../config/axios.js'
+
 
 const Login = () => {
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const navigate = useNavigate();
+
+    function submitHandler(e) {
+        e.preventDefault();
+        axios.post('/users/login', {
+            email,
+            password
+        }).then((res) => {
+            console.log(res);
+            navigate('/');
+        }).catch((err) => {
+            console.log(err.response.data);
+        }); 
+    }
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center text-gray-900">Login</h2>
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={submitHandler}>
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
-                        <input type="email" id="email" name="email" required className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                        <input
+                            onChange={(e) => setEmail(e.target.value)}
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                     </div>
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" id="password" name="password" required className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                        <input 
+                            onChange={(e) => setPassword(e.target.value)}
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
