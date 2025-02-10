@@ -33,7 +33,7 @@ export const getAllProjects = async (req, res) => {
 
         const allUserProjects = await projectService.getAllProjectByUserId({userId: loggenInUser._id});
 
-        res.status(200).json(allUserProjects);
+        res.status(200).json({projects: allUserProjects});
 
     }catch(err) {
         console.log(err);
