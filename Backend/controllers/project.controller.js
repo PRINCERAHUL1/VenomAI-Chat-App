@@ -13,9 +13,9 @@ export const createProject = async (req, res) => {
 
     try{
         const {name} = req.body;
-    const loggenInUser = await userModel.findOne({email: req.user.email});
+    const loggedInUser = await userModel.findOne({email: req.user.email});
 
-    const userId = loggenInUser._id;
+    const userId = loggedInUser._id;
 
     const newProject = await projectService.createProject({name, userId});
 
