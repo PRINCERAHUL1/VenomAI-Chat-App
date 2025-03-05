@@ -1,28 +1,54 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import axios from '../config/axios'
 
 const Project = () => {
     const location = useLocation()
     const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUserId, setSelectedUserId] = useState([])
+    const [project, setProject] = useState(location.state.project)
 
-    const users = [
-        { id: 1, name: 'User One' },
-        { id: 2, name: 'User Two' },
-        { id: 3, name: 'User Three' },
-        { id: 4, name: 'User Four' },
-        { id: 5, name: 'User Five' },
-        { id: 6, name: 'User Six' },
-        { id: 7, name: 'User Seven' },
-        { id: 8, name: 'User Eight' },
-        { id: 9, name: 'User Nine' },
-        { id: 10, name: 'User Ten' },
-    ]
+    const [users, setUsers] = useState([])
 
     const handleUserSelect = (id) => {
-        setSelectedUserId([...selectedUserId, id])
+        setSelectedUserId(prevSelectedUserId => {
+            const newSelectedUserId = new Set(prevSelectedUserId);
+            if (newSelectedUserId.has(id)) {
+            newSelectedUserId.delete(id);
+            } else {
+            newSelectedUserId.add(id);
+            }
+            return newSelectedUserId;
+        });
     }
+
+    function addColaborators() {
+        axios.put('/projects/add-user', {
+            projectId: location.state.project._id,
+            users: Array.from(selectedUserId)
+        }).then(res => {
+
+            setIsModalOpen(false)
+
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    useEffect(() => {
+        axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
+            setProject(res.data.project)
+        }).catch(err => {
+            console.log(err)
+        })
+
+        axios.get('/users/all').then(res => {
+            setUsers(res.data.users)
+        }).catch(err => {
+            console.log(err)
+        })
+    }, [])
 
     return (
         <div>
@@ -56,18 +82,22 @@ const Project = () => {
                     </div>
 
                     <div className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${isSidePanelOpen ? 'translate-x-0' : '-translate-x-full'} top-0`}>
-                        <header className='flex justify-end px-4 p-2 bg-slate-200'>
+                        <header className='flex justify-between items-center px-4 p-2 bg-slate-200'>
+                            <h1 className='font-semibold text-lg'>Collaborators</h1>
                             <button onClick={() => setIsSidePanelOpen(!isSidePanelOpen)} className='p-2'>
                                 <i className="ri-close-fill"></i>
                             </button>
                         </header>
                         <div className="users flex flex-col gap-2">
-                            <div className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center ">
-                                <div className='aspect-square rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
-                                    <i className='ri-user-fill absolute'></i>
-                                </div>
-                                <h1 className='font-semibold text-lg'>username</h1>
-                            </div>
+                            {project.users && project.users.map(user => {
+                                return (
+                                        <div key={user._id} className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center ">
+                                            <div className='aspect-square rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
+                                                <i className='ri-user-fill absolute'></i>
+                                            </div>
+                                            <h1 className='font-semibold text-lg'>{user.email}</h1>
+                                        </div>)
+                            })}
                         </div>
                     </div>
                 </section>
@@ -82,15 +112,17 @@ const Project = () => {
                         </header>
                         <div className="user-list flex flex-col gap-2 mb-16 max-h-96 overflow-y-auto">
                             {users.map(user => (
-                                <div key={user.id} className={`user cursor-pointer hover:bg-slate-200 ${selectedUserId.indexOf(user.id)!=-1?'bg-slate-200':''} p-2 flex gap-2 items-center`} onClick={() => handleUserSelect(user.id)}>
+                                <div key={user._id} className={`user cursor-pointer hover:bg-slate-200 ${Array.from(selectedUserId).indexOf(user._id)!=-1?'bg-slate-200':''} p-2 flex gap-2 items-center`} onClick={() => handleUserSelect(user._id)}>
                                     <div className='aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600'>
                                         <i className='ri-user-fill absolute'></i>
                                     </div>
-                                    <h1 className='font-semibold text-lg'>{user.name}</h1>
+                                    <h1 className='font-semibold text-lg'>{user.email}</h1>
                                 </div>
                             ))}
                         </div>
-                        <button className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white py-2 px-4 rounded">
+                        <button
+                        onClick={addColaborators}
+                        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white py-2 px-4 rounded">
                             Add Collaborators
                         </button>
                     </div>
