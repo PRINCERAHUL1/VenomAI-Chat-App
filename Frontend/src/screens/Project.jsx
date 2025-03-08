@@ -32,6 +32,20 @@ const Project = () => {
 
     const [users, setUsers] = useState([])
     const [ messages, setMessages ] = useState([])
+    const [fileTree, setFileTree] = useState({
+        "app.js": {
+            content: `
+            const express = require('express');`},
+
+        "package.json": {
+            content: `{
+          "name": "express-server",}`
+        }
+    
+    })
+
+    const [currentFile, setCurrentFile] = useState(null)
+    const [openFiles, setOpenFiles] = useState([])
 
     const handleUserSelect = (id) => {
         setSelectedUserId(prevSelectedUserId => {
@@ -124,7 +138,6 @@ const Project = () => {
 
 
     return (
-        <div>
             <main className='h-screen w-screen flex'>
                 <section className="left relative flex flex-col h-screen min-w-80 bg-slate-300">
                     <header className='flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute top-0'>
@@ -183,7 +196,68 @@ const Project = () => {
                         </div>
                     </div>
                 </section>
-            </main>
+
+                <section className="right bg-red-50 flex-grow h-full flex">
+
+                    <div className="explorer h-full max-w-64 min-w-52 bg-slate-200">
+                        <div className="file-tree w-full">
+                            {
+                                Object.keys(fileTree).map((file, index) => (
+                                    <button 
+                                    onClick={() => {
+                                        setCurrentFile(file)
+                                        setOpenFiles([...new Set([...openFiles, file])])
+                                    }}
+                                    className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full">
+                                        <p className="font-semibold text-lg"
+                                        >{file}</p>
+                                    </button>))
+                            }
+                        </div>
+                    </div>
+
+                    {currentFile && (
+                        <div className="code-editor flex flex-col flex-grow h-full">
+
+                            <div className="top flex">
+                                {
+                                    openFiles.map((file, index) => (
+                                        <button
+                                        onClick={() => setCurrentFile(file)}
+                                        className="open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300">
+                                            <p className="font-semibold text-lg"
+                                            >{file}</p>
+                                        </button>
+                                    ))
+                                }
+                            </div>
+
+                            <div className="bottom flex flex-grow">
+                                {
+                                    fileTree[currentFile] && (
+                                        <textarea
+                                        className="w-full h-full p-2 outline-none bg-slate-50"
+                                        value={fileTree[currentFile].content}
+                                        onChange={(e) => {
+                                            setFileTree(prevFileTree => ({
+                                                ...prevFileTree,
+                                                [currentFile]: {
+                                                    ...prevFileTree[currentFile],
+                                                    content: e.target.value
+                                                }
+                                            }))
+                                        }}
+                                        ></textarea>
+                                    )
+                                }
+                            </div>
+
+                        </div>
+                    
+                    )}
+
+                </section>
+            
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -210,7 +284,7 @@ const Project = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </main>
     )
 }
 
