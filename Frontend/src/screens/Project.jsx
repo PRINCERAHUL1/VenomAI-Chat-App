@@ -32,17 +32,7 @@ const Project = () => {
 
     const [users, setUsers] = useState([])
     const [ messages, setMessages ] = useState([])
-    const [fileTree, setFileTree] = useState({
-        "app.js": {
-            content: `
-            const express = require('express');`},
-
-        "package.json": {
-            content: `{
-          "name": "express-server",}`
-        }
-    
-    })
+    const [fileTree, setFileTree] = useState({})
 
     const [currentFile, setCurrentFile] = useState(null)
     const [openFiles, setOpenFiles] = useState([])
@@ -111,6 +101,13 @@ const Project = () => {
         initializeSocket(project._id)
 
         receiveMessage('project-message', data => {
+
+            const message = JSON.parse(data.message)
+
+            if (message.fileTree) {
+                setFileTree(message.fileTree)
+            }
+
             setMessages(prevMessages => [ ...prevMessages, data ])
         });
 
@@ -224,7 +221,7 @@ const Project = () => {
                                     openFiles.map((file, index) => (
                                         <button
                                         onClick={() => setCurrentFile(file)}
-                                        className="open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300">
+                                        className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${currentFile === file ? 'bg-slate-400' : ''}`}>
                                             <p className="font-semibold text-lg"
                                             >{file}</p>
                                         </button>
