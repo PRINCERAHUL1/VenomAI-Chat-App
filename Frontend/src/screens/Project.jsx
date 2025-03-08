@@ -79,20 +79,36 @@ const Project = () => {
     }, [])
 
     function appendIncomingMessage(messageObject) {
-        const messageBox = document.querySelector('.message-box')
-
-        const message = document.createElement('div')
-        message.classList.add('message', 'max-w-56', 'flex', 'flex-col', 'p-2', 'bg-slate-50', 'w-fit', 'rounded-md')
+        const messageBox = document.querySelector('.message-box');
+    
+        if (!messageBox) return;
+    
+        const message = document.createElement('div');
+        message.classList.add(
+            'message', 'max-w-56', 'flex', 'flex-col', 
+            'p-2', 'bg-slate-50', 'w-fit', 'rounded-md'
+        );
+    
+        // Safe property access
+        const senderEmail = messageObject?.sender?.email || "Unknown Sender";
+        const messageText = messageObject?.message || "No message content";
+    
         message.innerHTML = `
-            <small class='opacity-65 text-xs'>${messageObject.sender}</small>
-            <p class='text-sm'>${messageObject.message}</p>
-        `
-        messageBox.appendChild(message)
-        scrollToBottom()
+            <small class='opacity-65 text-xs'>${senderEmail}</small>
+            <p class='text-sm'>${messageText}</p>
+        `;
+    
+        messageBox.appendChild(message);
+        scrollToBottom();
     }
+    
+    
 
     function appendOutgoingMessage(message){
         const messageBox = document.querySelector('.message-box')
+
+        if (!messageBox) 
+            return;
 
         const messageElement = document.createElement('div')
         messageElement.classList.add('ml-auto', 'message', 'max-w-56', 'flex', 'flex-col', 'p-2', 'bg-slate-50', 'w-fit', 'rounded-md')
@@ -105,7 +121,9 @@ const Project = () => {
     }
 
     function scrollToBottom(){
-        messageBox.current.scrollTop = messageBox.current.scrollHeight
+        if (messageBox.current) {
+            messageBox.current.scrollTop = messageBox.current.scrollHeight;
+        }
     }
 
 
