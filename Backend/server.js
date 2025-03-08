@@ -60,6 +60,7 @@ io.on('connection', socket => {
         const sender = socket.user || { _id: 'unknown', email: 'Anonymous' }; 
     
         const aiIsPresentInMessage = message.includes('@venom');
+        socket.broadcast.to(socket.roomId).emit('project-message', data);
     
         if (aiIsPresentInMessage) {
             const prompt = message.replace('@venom', '');
@@ -76,10 +77,7 @@ io.on('connection', socket => {
             return;
         }
     
-        socket.broadcast.to(socket.roomId).emit('project-message', {
-            message,
-            sender
-        });
+        
     });
     
 

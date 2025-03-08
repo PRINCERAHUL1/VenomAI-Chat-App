@@ -1,15 +1,30 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import axios from '../config/axios'
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket'
 import {UserContext} from '../context/user.context'
 import Markdown from 'markdown-to-jsx'
+import { use } from 'react'
+
+function SyntaxHighlightedCode(props) {
+    const ref = useRef(null);   
+
+    React.useEffect(() => {
+        if (ref.current && props.className?.includes('lang') && window.hljs) {
+            window.hljs.highlightElement(ref.current);
+
+            ref.current.removeAttribute('data-highlighted');
+        }
+    }, [props.className, props.children])
+
+    return <code {...props} ref={ref} />
+}
 
 const Project = () => {
     const location = useLocation()
     const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [selectedUserId, setSelectedUserId] = useState([])
+    const [selectedUserId, setSelectedUserId] = useState(new Set())
     const [project, setProject] = useState(location.state.project)
     const [message, setMessage] = useState('')
     const {user} = useContext(UserContext)
@@ -47,7 +62,10 @@ const Project = () => {
 
         sendMessage('project-message', {
             message,
-            sender: user.email,
+            sender: {
+                _id: user._id,
+                email: user.email
+            }
         })
 
         setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ])
@@ -105,13 +123,20 @@ const Project = () => {
                             ref={messageBox}
                             className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full scrollbar-hide">
                             {messages.map((msg, index) => (
-                                <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'ml-auto max-w-54'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                                <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-54'} ${msg.sender._id == user._id &&'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                                     <small className='opacity-65 text-xs'>{msg.sender.email}</small>
                                     <p className='text-sm'>
                                         {msg.sender._id === 'ai' ?
  
                                          <div className='overflow-auto bg-slate-950 text-white rounded-sm p-2'>
-                                             <Markdown>{msg.message}</Markdown>
+                                             <Markdown
+                                                 children={msg.message}
+                                                 options={{
+                                                     overrides: {
+                                                         code: SyntaxHighlightedCode,
+                                                     },
+                                                 }}
+                                             />
                                          </div>
                                          : msg.message}
                                     </p>
