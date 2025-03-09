@@ -112,6 +112,8 @@ const Project = () => {
 
         receiveMessage('project-message', data => {
 
+            console.log(data)
+
             const message = JSON.parse(data.message)
 
             console.log(message)
@@ -228,10 +230,12 @@ const Project = () => {
                         </div>
                     </div>
 
-                    {currentFile && (
+                    
                         <div className="code-editor flex flex-col flex-grow h-full shrink">
 
-                            <div className="top flex">
+                            <div className="top flex justify-between w-full">
+
+                                <div className="files flex">
                                 {
                                     openFiles.map((file, index) => (
                                         <button
@@ -243,6 +247,33 @@ const Project = () => {
                                         </button>
                                     ))
                                 }
+                                </div>
+                                <div className="actions flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            await webContainer.mount(fileTree)
+
+                                            const installProcess = await webContainer.spawn('npm', ['install'])
+                                            
+                                            installProcess.output.pipeTo(new WritableStream({
+                                                write(chunk) {
+                                                    console.log(chunk)
+                                                }
+                                            }))
+                                            
+                                            const runProcess = await webContainer.spawn('npm', ['start'])
+
+                                            runProcess.output.pipeTo(new WritableStream({
+                                                write(chunk) {
+                                                    console.log(chunk)
+                                                }
+                                            }))
+                                        }}
+                                        className='p-2 px-4 bg-slate-300 text-white'
+                                        >
+                                        Run
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="bottom flex flex-grow max-w-full max-w-full shrink overflow-auto">
@@ -280,7 +311,7 @@ const Project = () => {
 
                         </div>
                     
-                    )}
+                    
 
                 </section>
             
