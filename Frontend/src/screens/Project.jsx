@@ -39,6 +39,7 @@ const Project = () => {
     const [openFiles, setOpenFiles] = useState([])
     const [webContainer, setWebContainer] = useState(null)
     const[iframeUrl, setIframeUrl] = useState(null)
+    const [runProcess, setRunProcess] = useState(null)
 
     const handleUserSelect = (id) => {
         setSelectedUserId(prevSelectedUserId => {
@@ -261,14 +262,20 @@ const Project = () => {
                                                     console.log(chunk)
                                                 }
                                             }))
-                                            
-                                            const runProcess = await webContainer.spawn('npm', ['start'])
 
-                                            runProcess.output.pipeTo(new WritableStream({
+                                            if(runProcess) {
+                                                runProcess.kill()
+                                            }
+                                            
+                                            let tempRunProcess = await webContainer.spawn('npm', ['start'])
+
+                                            tempRunProcess.output.pipeTo(new WritableStream({
                                                 write(chunk) {
                                                     console.log(chunk)
                                                 }
                                             }))
+
+                                            setRunProcess(tempRunProcess)
 
                                             webContainer.on('server-ready', (port, url) => {
                                                 console.log(port, url)
@@ -297,10 +304,12 @@ const Project = () => {
                                                      setFileTree(prevFileTree => ({
                                                          ...prevFileTree,
                                                          [ currentFile ]: {
-                                                             ...prevFileTree[ currentFile ],
-                                                             content: updatedContent
+                                                                ...prevFileTree[ currentFile ],
+                                                                file: {
+                                                                    ...prevFileTree[ currentFile ].file,
+                                                                    contents: updatedContent
                                                          }
-                                                     }));
+                                                     }}));
                                                  }}
                                                  dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
                                                  style={{
@@ -318,10 +327,19 @@ const Project = () => {
                         </div>
                     
                     {iframeUrl && webContainer && 
-                    <iframe
+                    (<div className="flex min-w-96 flex-col h-full">
+                        <div className="address-bar">
+                            <input type="text" 
+                                onChange={(e) => setIframeUrl(e.target.value)}
+                                className="w-full p-2 px-4 bg-slate-300 text-white" 
+                                value={iframeUrl} />
+                        </div>
+                        
+                        <iframe
                         src={iframeUrl}
-                        className="w-1/2 h-full"></iframe>
-                    }
+                        className="w-full h-full"></iframe>
+                    </div>
+                    )}
 
                 </section>
             
