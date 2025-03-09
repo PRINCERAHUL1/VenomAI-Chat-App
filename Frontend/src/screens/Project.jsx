@@ -38,6 +38,7 @@ const Project = () => {
     const [currentFile, setCurrentFile] = useState(null)
     const [openFiles, setOpenFiles] = useState([])
     const [webContainer, setWebContainer] = useState(null)
+    const[iframeUrl, setIframeUrl] = useState(null)
 
     const handleUserSelect = (id) => {
         setSelectedUserId(prevSelectedUserId => {
@@ -168,7 +169,7 @@ const Project = () => {
                             ref={messageBox}
                             className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full scrollbar-hide">
                             {messages.map((msg, index) => (
-                                <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-54'} ${msg.sender._id == user._id &&'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
+                                <div key={index} className={`${msg.sender._id === 'ai' ? 'max-w-80' : 'max-w-52'} ${msg.sender._id == user._id &&'ml-auto'}  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}>
                                     <small className='opacity-65 text-xs'>{msg.sender.email}</small>
                                     <div className='text-sm'>
                                         {msg.sender._id === 'ai' ?
@@ -268,6 +269,11 @@ const Project = () => {
                                                     console.log(chunk)
                                                 }
                                             }))
+
+                                            webContainer.on('server-ready', (port, url) => {
+                                                console.log(port, url)
+                                                setIframeUrl(url)
+                                            })
                                         }}
                                         className='p-2 px-4 bg-slate-300 text-white'
                                         >
@@ -311,7 +317,11 @@ const Project = () => {
 
                         </div>
                     
-                    
+                    {iframeUrl && webContainer && 
+                    <iframe
+                        src={iframeUrl}
+                        className="w-1/2 h-full"></iframe>
+                    }
 
                 </section>
             
