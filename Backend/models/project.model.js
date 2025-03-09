@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { mongo } from 'mongoose';
 
 
 
@@ -14,7 +14,13 @@ const projectSchema = new mongoose.Schema({
     users:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }],
+    
+    fileTree: {
+        type: Object,
+        default: {}
+    },
+
 });
 
 

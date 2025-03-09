@@ -111,7 +111,6 @@ const Project = () => {
             })
         }
 
-
         receiveMessage('project-message', data => {
 
             console.log(data)
@@ -133,6 +132,8 @@ const Project = () => {
 
         axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
             setProject(res.data.project)
+
+            setFileTree(res.data.project.fileTree)
         }).catch(err => {
             console.log(err)
         })
@@ -144,6 +145,17 @@ const Project = () => {
             console.log(err)
         })
     }, [])
+
+    function saveFileTree(ft) {
+        axios.put('/projects/update-file-tree', {
+            projectId: project._id,
+            fileTree: ft
+        }).then(res => {
+            console.log(res.data)
+        }).catch(err => {
+            console.log(err)
+        })
+    }
 
     function scrollToBottom(){
         if (messageBox.current) {
@@ -301,15 +313,15 @@ const Project = () => {
                                                  suppressContentEditableWarning
                                                  onBlur={(e) => {
                                                      const updatedContent = e.target.innerText;
-                                                     setFileTree(prevFileTree => ({
-                                                         ...prevFileTree,
-                                                         [ currentFile ]: {
-                                                                ...prevFileTree[ currentFile ],
+                                                     const ft = { ...fileTree,
+                                                            [ currentFile ]: {
                                                                 file: {
-                                                                    ...prevFileTree[ currentFile ].file,
                                                                     contents: updatedContent
-                                                         }
-                                                     }}));
+                                                                }
+                                                            }
+                                                        }
+                                                        setFileTree(ft)
+                                                        saveFileTree(ft)
                                                  }}
                                                  dangerouslySetInnerHTML={{ __html: hljs.highlight('javascript', fileTree[ currentFile ].file.contents).value }}
                                                  style={{
