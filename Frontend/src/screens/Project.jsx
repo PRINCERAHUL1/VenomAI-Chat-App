@@ -8,18 +8,18 @@ import hljs from 'highlight.js'
 import { getWebContainer } from '../config/webContainer'
 
 function SyntaxHighlightedCode(props) {
-    const ref = useRef(null);   
+    const ref = useRef(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (ref.current && props.className?.includes('lang') && window.hljs) {
+            console.log("Applying highlighting...");
             window.hljs.highlightElement(ref.current);
-
-            ref.current.removeAttribute('data-highlighted');
         }
-    }, [props.className, props.children])
+    }, [props.className, props.children]);
 
-    return <code {...props} ref={ref} />
+    return <code {...props} ref={ref} key={props.children} />;
 }
+
 
 const Project = () => {
     const location = useLocation()
