@@ -104,13 +104,11 @@ const Project = () => {
 
         initializeSocket(project._id)
 
-        if (!webContainer) {
+        if(!webContainer) {
             getWebContainer().then(container => {
-                if (!webContainer) { // Double-check to prevent duplicate instances
-                    setWebContainer(container);
-                    console.log("WebContainer initialized.");
-                }
-            }).catch(err => console.error("Error initializing WebContainer:", err));
+                setWebContainer(container)
+                console.log("container started")
+            })
         }
 
         receiveMessage('project-message', data => {
@@ -269,59 +267,41 @@ const Project = () => {
                                 }
                                 </div>
                                 <div className="actions flex gap-2">
-                                <button
-  onClick={async () => {
-    if (!webContainer) {
-        console.log("Initializing WebContainer...");
-        const container = await getWebContainer();
-        setWebContainer(container);
-    }
+                                    <button
+                                        onClick={async () => {
+                                            await webContainer.mount(fileTree)
 
-    // Use the existing WebContainer instance
-    const container = webContainer || await getWebContainer();
+                                            const installProcess = await webContainer.spawn('npm', ['install'])
+                                            
+                                            installProcess.output.pipeTo(new WritableStream({
+                                                write(chunk) {
+                                                    console.log(chunk)
+                                                }
+                                            }))
 
-    console.log("Mounting files...");
-    await container.mount(fileTree);
+                                            if(runProcess) {
+                                                runProcess.kill()
+                                            }
+                                            
+                                            let tempRunProcess = await webContainer.spawn('npm', ['start'])
 
-    console.log("Installing dependencies...");
-    const installProcess = await container.spawn("npm", ["install"]);
+                                            tempRunProcess.output.pipeTo(new WritableStream({
+                                                write(chunk) {
+                                                    console.log(chunk)
+                                                }
+                                            }))
 
-    installProcess.output.pipeTo(
-      new WritableStream({
-        write(chunk) {
-          console.log(chunk);
-        },
-      })
-    );
+                                            setRunProcess(tempRunProcess)
 
-    if (runProcess) {
-      runProcess.kill();
-    }
-
-    console.log("Starting the server...");
-    let tempRunProcess = await container.spawn("npm", ["start"]);
-
-    tempRunProcess.output.pipeTo(
-      new WritableStream({
-        write(chunk) {
-          console.log(chunk);
-        },
-      })
-    );
-
-    setRunProcess(tempRunProcess);
-
-    container.on("server-ready", (port, url) => {
-      console.log("Server Ready:", port, url);
-      setIframeUrl(url);
-    });
-}}
-
-  className="p-2 px-4 bg-slate-300 text-white"
->
-  Run
-</button>
-
+                                            webContainer.on('server-ready', (port, url) => {
+                                                console.log(port, url)
+                                                setIframeUrl(url)
+                                            })
+                                        }}
+                                        className='p-2 px-4 bg-slate-300 text-white'
+                                        >
+                                        Run
+                                    </button>
                                 </div>
                             </div>
 
