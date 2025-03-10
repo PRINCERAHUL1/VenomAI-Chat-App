@@ -104,11 +104,13 @@ const Project = () => {
 
         initializeSocket(project._id)
 
-        if(!webContainer) {
+        if (!webContainer) {
             getWebContainer().then(container => {
-                setWebContainer(container)
-                console.log("container started")
-            })
+                if (!webContainer) { // Double-check to prevent duplicate instances
+                    setWebContainer(container);
+                    console.log("WebContainer initialized.");
+                }
+            }).catch(err => console.error("Error initializing WebContainer:", err));
         }
 
         receiveMessage('project-message', data => {
@@ -270,18 +272,15 @@ const Project = () => {
                                 <button
   onClick={async () => {
     if (!webContainer) {
-      console.log("Waiting for webContainer to initialize...");
-      
-      const container = await getWebContainer();
-      setWebContainer(container);
-      console.log("Container started");
-
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Small delay to ensure state update
+        console.log("Initializing WebContainer...");
+        const container = await getWebContainer();
+        setWebContainer(container);
     }
 
-    const container = webContainer || await getWebContainer(); // Ensure container is set
+    // Use the existing WebContainer instance
+    const container = webContainer || await getWebContainer();
 
-    console.log("Mounting file tree...");
+    console.log("Mounting files...");
     await container.mount(fileTree);
 
     console.log("Installing dependencies...");
@@ -316,7 +315,8 @@ const Project = () => {
       console.log("Server Ready:", port, url);
       setIframeUrl(url);
     });
-  }}
+}}
+
   className="p-2 px-4 bg-slate-300 text-white"
 >
   Run
